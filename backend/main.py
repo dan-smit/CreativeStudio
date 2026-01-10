@@ -41,6 +41,7 @@ app.add_middleware(
 detector: Optional[ObjectDetector] = None
 style_transfer: Optional[StyleTransfer] = None
 storage_manager: Optional[StorageManager] = None
+detection_cache: dict = {}  # Cache for detections with masks (file_id -> detections)
 
 
 @app.on_event("startup")
@@ -127,13 +128,29 @@ async def detect_objects(file_id: str):
         # Load image
         image_path = storage_manager.get_upload_path(file_id)
         
-        # Run detection
+        # Run detection (returns detections with masks)
         detections = detector.detect(image_path)
+        
+        # Cache detections (with masks) for later use in style transfer
+        detection_cache[file_id] = detections
+        logger.info(f"Cached detections for file_id: {file_id}")
+        
+        # Return detections WITHOUT masks (for JSON serialization)
+        detections_for_response = [
+            {
+                "id": d["id"],
+                "class": d["class"],
+                "confidence": d["confidence"],
+                "bbox": d["bbox"],
+                "area": d["area"]
+            }
+            for d in detections
+        ]
         
         return {
             "file_id": file_id,
-            "objects": detections,
-            "count": len(detections)
+            "objects": detections_for_response,
+            "count": len(detections_for_response)
         }
     except Exception as e:
         logger.error(f"Detection error: {str(e)}")
@@ -160,9 +177,12 @@ async def apply_style_transfer(
         if not (0.0 <= strength <= 1.0):
             raise HTTPException(status_code=400, detail="Strength must be 0.0-1.0")
         
-        # Load image and detections
+        # Get cached detections with masks
+        if file_id not in detection_cache:
+            raise HTTPException(status_code=400, detail="File not detected. Run /detect-objects first.")
+        
+        detections = detection_cache[file_id]
         image_path = storage_manager.get_upload_path(file_id)
-        detections = detector.detect(image_path)
         
         # Apply style transfer
         result_path = style_transfer.apply(

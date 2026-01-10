@@ -175,11 +175,11 @@ class StyleTransfer:
         strength: float = 0.8
     ) -> str:
         """
-        Apply style transfer to specific objects
+        Apply style transfer to specific objects using segmentation masks
         
         Args:
             image_path: Path to input image
-            detections: Object detection results
+            detections: Object detection results with masks
             object_indices: Indices of objects to stylize
             style_name: Style to apply
             strength: Blending strength (0.0-1.0)
@@ -198,16 +198,31 @@ class StyleTransfer:
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         result = image_rgb.copy()
         
-        # Process each selected object
+        # Process each selected object using its mask
         for idx in object_indices:
             if idx >= len(detections):
                 logger.warning(f"Object index {idx} out of range")
                 continue
             
             detection = detections[idx]
-            bbox = detection["bbox"]
             
-            # Extract region
+            # Check if mask is available
+            if "mask" not in detection:
+                logger.warning(f"No mask found for object {idx}, skipping")
+                continue
+            
+            mask = detection["mask"]
+            if mask is None:
+                logger.warning(f"Mask is None for object {idx}, skipping")
+                continue
+            
+            logger.info(f"Stylizing object {idx} with mask (shape: {mask.shape})")
+            
+            # Normalize mask to 0-1
+            mask_normalized = mask.astype(float) / 255.0
+            
+            # Extract bounding box for efficiency
+            bbox = detection["bbox"]
             x1, y1, x2, y2 = (
                 int(bbox["x1"]), int(bbox["y1"]),
                 int(bbox["x2"]), int(bbox["y2"])
@@ -221,30 +236,32 @@ class StyleTransfer:
                 logger.warning(f"Invalid bbox coordinates for object {idx}")
                 continue
             
-            logger.info(f"Stylizing object {idx} in region ({x1},{y1}) to ({x2},{y2})")
-            
-            # Extract object region
+            # Extract region from image and mask
             region = result[y1:y2, x1:x2].copy()
+            region_mask = mask_normalized[y1:y2, x1:x2]
             
             # Apply style transfer to region
             region_pil = Image.fromarray(region)
             stylized_region_pil = self._apply_style(region_pil, style_name)
-            stylized_region = np.array(stylized_region_pil)
+            stylized_region = np.array(stylized_region_pil).astype(np.uint8)
             
             # Ensure same dtype
-            stylized_region = stylized_region.astype(np.uint8)
             region = region.astype(np.uint8)
             
-            # Blend with original
+            # Blend with original using mask
             blended_region = cv2.addWeighted(
                 stylized_region, strength,
                 region, 1 - strength,
                 0
             ).astype(np.uint8)
             
+            # Apply mask to blend result (only affect masked pixels)
+            region_mask_3d = np.stack([region_mask] * 3, axis=2)
+            masked_blend = (blended_region * region_mask_3d + region * (1 - region_mask_3d)).astype(np.uint8)
+            
             # Put back in result
-            result[y1:y2, x1:x2] = blended_region
-            logger.info(f"Object {idx} stylized and blended")
+            result[y1:y2, x1:x2] = masked_blend
+            logger.info(f"Object {idx} stylized and masked")
         
         # Convert back to BGR and save
         result_bgr = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)

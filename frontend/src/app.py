@@ -222,6 +222,18 @@ with col2:
 
 # Settings sidebar
 with st.sidebar:
+    st.markdown("### 📚 About")
+    st.markdown("""
+    **Creative Studio** is an AI-powered photo editor that uses:
+    - **YOLOv8** for object detection
+    - **Neural Style Transfer** for artistic effects
+    - **Google Cloud Storage** for reliable storage
+    
+    Selective style transfer lets you apply styles to specific objects in your images.
+    """)
+    
+    st.divider()
+    
     st.markdown("### ⚙️ Settings")
     
     st.markdown("**API Configuration**")
@@ -239,14 +251,3 @@ with st.sidebar:
     except:
         st.warning("Could not load API settings")
     
-    st.divider()
-    
-    st.markdown("### 📚 About")
-    st.markdown("""
-    **Creative Studio** is an AI-powered photo editor that uses:
-    - **YOLOv8** for object detection
-    - **Neural Style Transfer** for artistic effects
-    - **Google Cloud Storage** for reliable storage
-    
-    Selective style transfer lets you apply styles to specific objects in your images.
-    """)

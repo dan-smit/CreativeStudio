@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     GPU_DEVICE: int = int(os.getenv("GPU_DEVICE", "0"))
     
     # YOLO settings
-    YOLO_MODEL: str = os.getenv("YOLO_MODEL", "yolov8m")  # yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
+    YOLO_MODEL: str = os.getenv("YOLO_MODEL", "yolov8m-seg")  # yolov8n-seg, yolov8s-seg, yolov8m-seg, yolov8l-seg, yolov8x-seg
     YOLO_CONFIDENCE: float = float(os.getenv("YOLO_CONFIDENCE", "0.45"))
     
     # Neural Style Transfer settings
