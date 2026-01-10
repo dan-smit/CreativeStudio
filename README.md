@@ -39,7 +39,7 @@ Creative Studio/
 1. **Clone and setup**:
 ```bash
 cd CreativeStudio
-python -m venv venv
+python3.11 -m venv venv
 source venv/Scripts/activate  # if using windows
 pip install -r requirements.txt
 ```
@@ -47,6 +47,7 @@ pip install -r requirements.txt
 2. **Create .env file**:
 ```bash
 python3.11 -m venv venv
+
 # Edit .env with your preferences
 ```
 
