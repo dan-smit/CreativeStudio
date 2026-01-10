@@ -2,7 +2,7 @@
 Creative Studio Backend
 AI-powered photo editor with selective neural style transfer
 """
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -13,9 +13,9 @@ import logging
 
 # Import custom modules
 from config import settings, init_gcs
-from detection import ObjectDetector
-from style_transfer import StyleTransfer
-from storage import StorageManager
+from app.detection import ObjectDetector
+from app.style_transfer import StyleTransfer
+from app.storage import StorageManager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -99,8 +99,13 @@ async def health_check():
 async def upload_image(file: UploadFile = File(...)):
     """Upload an image for processing"""
     try:
-        if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
+        # Log file details for debugging
+        logger.info(f"Upload received: filename={file.filename}, content_type={file.content_type}")
+        
+        # Accept any file that Streamlit sent (it filters on the frontend)
+        # Let actual image processing fail if it's not a valid image
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="File must have a filename")
         
         # Save file
         file_id = storage_manager.save_upload(file)
@@ -137,10 +142,10 @@ async def detect_objects(file_id: str):
 
 @app.post("/apply-style-transfer")
 async def apply_style_transfer(
-    file_id: str,
-    style_name: str,
-    object_indices: list[int],
-    strength: float = 0.8
+    file_id: str = Query(...),
+    style_name: str = Query(...),
+    object_indices: list[int] = Query(...),
+    strength: float = Query(0.8)
 ):
     """
     Apply neural style transfer to specific objects in image
