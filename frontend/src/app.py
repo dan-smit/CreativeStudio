@@ -47,6 +47,8 @@ if "selected_objects" not in st.session_state:
 st.title("🎨 Creative Studio")
 st.markdown("AI-powered photo editor with selective neural style transfer")
 
+st.markdown("Choose an image, detect objects within the image, then apply artistic styles to selected objects!")
+
 # Check API health
 try:
     health = requests.get(f"{API_URL}/health", timeout=5).json()
@@ -113,7 +115,7 @@ with col1:
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
                     
-    st.divider()
+        st.divider()
 
     NST_image = st.empty()
     NST_download = st.empty()
@@ -126,7 +128,7 @@ with col2:
         
         # Display detections
         for i, det in enumerate(st.session_state.detections):
-            col_check, col_info = st.columns([0.3, 0.7])
+            col_check, col_info = st.columns([0.3, 0.7], vertical_alignment="top")
             
             with col_check:
                 selected = st.checkbox(

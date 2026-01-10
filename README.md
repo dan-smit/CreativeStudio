@@ -1,6 +1,6 @@
 # 🎨 Creative Studio
 
-AI-powered photo editor with selective neural style transfer. Apply artistic styles to specific objects in your images using advanced object detection and neural style transfer.
+AI-powered photo editor with selective neural style transfer. Apply artistic styles to specific objects in your images using object detection, image segmentation, and neural style transfer.
 
 ## ✨ Features
 
@@ -46,14 +46,14 @@ pip install -r requirements.txt
 
 2. **Create .env file**:
 ```bash
-copy .env.example .env
+python3.11 -m venv venv
 # Edit .env with your preferences
 ```
 
 3. **Run backend** (terminal 1):
 ```bash
 cd backend
-python main.py
+pymon main.py
 # Backend starts at http://localhost:8000
 ```
 
@@ -295,29 +295,5 @@ docker-compose up --build
 ```bash
 docker-compose -f docker-compose.gpu.yml up
 ```
-
-### Kubernetes (Production)
-See `k8s/` directory for manifests
-
-## 📝 License
-
-MIT License - See LICENSE file
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Open pull request
-
-## 📞 Support
-
-- Issues: GitHub Issues
-- Email: support@creativestudio.ai
-- Docs: Full documentation in `/docs`
-
----
 
 **Made with ❤️ using FastAPI, YOLOv8, and PyTorch**
