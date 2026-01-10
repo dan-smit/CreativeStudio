@@ -1,0 +1,28 @@
+# Backend dependencies
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+
+# ML/CV dependencies
+ultralytics==8.0.207  # YOLO
+opencv-python==4.8.1.78
+torch==2.0.1
+torchvision==0.15.2
+numpy==1.24.3
+Pillow==10.0.1
+
+# Configuration
+pydantic==2.4.2
+pydantic-settings==2.0.3
+python-dotenv==1.0.0
+
+# Google Cloud Storage (optional)
+google-cloud-storage==2.10.0
+
+# Frontend (Streamlit)
+streamlit==1.28.1
+requests==2.31.0
+
+# Utilities
+python-multipart==0.0.6
+aiofiles==23.2.1

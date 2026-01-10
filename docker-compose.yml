@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: creative-studio-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./models:/app/models
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - USE_GPU=${USE_GPU:-False}
+      - GPU_DEVICE=${GPU_DEVICE:-0}
+      - YOLO_MODEL=${YOLO_MODEL:-yolov8m}
+      - NST_MODEL_TYPE=${NST_MODEL_TYPE:-onnx}
+      - USE_GCS=${USE_GCS:-False}
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
+      - GCS_BUCKET=${GCS_BUCKET}
+      - GCS_CREDENTIALS_PATH=${GCS_CREDENTIALS_PATH}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    command: python main.py
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: creative-studio-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    command: streamlit run src/app.py --server.port=8501 --server.address=0.0.0.0
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  results:
+  models:
