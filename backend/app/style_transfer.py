@@ -218,6 +218,12 @@ class StyleTransfer:
             
             logger.info(f"Stylizing object {idx} with mask (shape: {mask.shape})")
             
+            # Resize mask to match image dimensions if needed
+            h_img, w_img = image_rgb.shape[:2]
+            if mask.shape[:2] != (h_img, w_img):
+                mask = cv2.resize(mask, (w_img, h_img), interpolation=cv2.INTER_NEAREST)
+                logger.info(f"Resized mask from {detection['mask'].shape} to {mask.shape}")
+            
             # Normalize mask to 0-1
             mask_normalized = mask.astype(float) / 255.0
             

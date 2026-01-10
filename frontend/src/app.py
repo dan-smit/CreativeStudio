@@ -57,23 +57,25 @@ try:
 except:
     st.error("❌ Cannot connect to API. Make sure backend is running.")
     st.stop()
-
+    
+# File uploader
+uploaded_file = st.file_uploader(
+    "Choose an image",
+    type=["jpg", "jpeg", "png", "webp"]
+)
+    
 # Main layout
 col1, col2 = st.columns([1, 1], gap="large")
 
 with col1:
     st.subheader("📤 Upload & Detect")
     
-    # File uploader
-    uploaded_file = st.file_uploader(
-        "Choose an image",
-        type=["jpg", "jpeg", "png", "webp"]
-    )
+    image_placeholder = st.empty()
     
     if uploaded_file:
         # Display uploaded image
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
+        image_placeholder.image(image, caption="Uploaded Image")
         
         # Upload to backend
         if st.button("🔍 Upload & Detect Objects", use_container_width=True):
@@ -110,6 +112,11 @@ with col1:
                         st.error(f"Upload failed: {response.text}")
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
+                    
+    st.divider()
+
+    NST_image = st.empty()
+    NST_download = st.empty()
 
 with col2:
     st.subheader("🎭 Select & Stylize")
@@ -119,7 +126,7 @@ with col2:
         
         # Display detections
         for i, det in enumerate(st.session_state.detections):
-            col_check, col_info = st.columns([0.2, 0.8])
+            col_check, col_info = st.columns([0.3, 0.7])
             
             with col_check:
                 selected = st.checkbox(
@@ -136,6 +143,53 @@ with col2:
                     f"**{det['class']}** (conf: {det['confidence']:.2f}) | "
                     f"Size: {det['bbox']['width']:.0f}x{det['bbox']['height']:.0f}px"
                 )
+        
+        if st.session_state.selected_objects:
+            # Draw bounding boxes on a copy of the original image
+            from PIL import ImageDraw
+            
+            viz_image = st.session_state.uploaded_image.copy()
+            draw = ImageDraw.Draw(viz_image)
+            
+            # Color map for different objects
+            colors = [
+                "#FF0000", "#00FF00", "#0000FF",
+                "#FFFF00", "#FF00FF", "#00FFFF",
+                "#FF8000", "#FF0080", "#80FF00",
+                "#8000FF", "#00FF80", "#FF8080"
+            ]
+            
+            # Draw boxes for selected objects
+            for idx in st.session_state.selected_objects:
+                if idx >= len(st.session_state.detections):
+                    continue
+                
+                detection = st.session_state.detections[idx]
+                color = colors[idx % len(colors)]
+                bbox = detection["bbox"]
+                
+                # Draw rectangle
+                x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+                draw.rectangle(
+                    [(x1, y1), (x2, y2)],
+                    outline=color,
+                    width=3
+                )
+                
+                # Draw label
+                label = f"{detection['class']} ({idx})"
+                draw.text(
+                    (int(x1), max(int(y1) - 20, 10)),
+                    label,
+                    fill=color
+                )
+            
+            image_placeholder.image(
+                viz_image,
+                caption=f"Selected Objects ({len(st.session_state.selected_objects)})"
+            )
+        else:
+            st.info("Select objects above to visualize")
         
         st.divider()
         
@@ -199,14 +253,13 @@ with col2:
                                 
                                 if img_response.status_code == 200:
                                     result_image = Image.open(io.BytesIO(img_response.content))
-                                    st.image(
+                                    NST_image.image(
                                         result_image,
-                                        caption="Stylized Result",
-                                        use_column_width=True
+                                        caption="Stylized Result"
                                     )
                                     
                                     # Download button
-                                    st.download_button(
+                                    NST_download.download_button(
                                         label="📥 Download Result",
                                         data=img_response.content,
                                         file_name=f"result_{style_name}.png",
@@ -222,6 +275,9 @@ with col2:
 
 # Settings sidebar
 with st.sidebar:
+    with st.expander("📊 Session State"):
+        st.json(st.session_state)
+    
     st.markdown("### 📚 About")
     st.markdown("""
     **Creative Studio** is an AI-powered photo editor that uses:
@@ -237,7 +293,7 @@ with st.sidebar:
     st.markdown("### ⚙️ Settings")
     
     st.markdown("**API Configuration**")
-    st.code(f"Endpoint: {API_URL}", language="text")
+    st.markdown(f"Endpoint: {API_URL}") #, st.code(f"Endpoint: {API_URL}", language="text")
     
     # Get API settings
     try:

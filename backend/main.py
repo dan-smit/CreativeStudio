@@ -157,6 +157,92 @@ async def detect_objects(file_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/visualize-objects")
+async def visualize_objects(
+    file_id: str = Query(...),
+    object_indices: list[int] = Query(None)
+):
+    """
+    Visualize selected objects with bounding boxes/masks on the image
+    
+    Args:
+        file_id: ID of uploaded image
+        object_indices: List of object indices to visualize (None = all)
+        
+    Returns:
+        Image file with visualization
+    """
+    try:
+        if file_id not in detection_cache:
+            raise HTTPException(status_code=400, detail="File not detected. Run /detect-objects first.")
+        
+        image_path = storage_manager.get_upload_path(file_id)
+        detections = detection_cache[file_id]
+        
+        # If no indices specified, visualize all
+        if object_indices is None or len(object_indices) == 0:
+            object_indices = [d["id"] for d in detections]
+        
+        # Create visualization
+        import cv2
+        import numpy as np
+        
+        image = cv2.imread(image_path)
+        h, w = image.shape[:2]
+        overlay = image.copy()
+        
+        # Color map for different objects
+        colors = [
+            (255, 0, 0), (0, 255, 0), (0, 0, 255),
+            (255, 255, 0), (255, 0, 255), (0, 255, 255),
+            (255, 128, 0), (255, 0, 128), (128, 255, 0),
+            (128, 0, 255), (0, 128, 255), (255, 128, 128)
+        ]
+        
+        # Draw boxes and masks for selected objects
+        for idx in object_indices:
+            if idx >= len(detections):
+                continue
+            
+            detection = detections[idx]
+            color = colors[idx % len(colors)]
+            
+            # Draw mask if available
+            if "mask" in detection and detection["mask"] is not None:
+                mask = detection["mask"]
+                # Resize mask to match image dimensions if needed
+                if mask.shape[:2] != (h, w):
+                    mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+                overlay[mask > 128] = color
+            
+            # Draw bounding box
+            bbox = detection["bbox"]
+            x1, y1, x2, y2 = int(bbox["x1"]), int(bbox["y1"]), int(bbox["x2"]), int(bbox["y2"])
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), color, 3)
+            
+            # Put text label
+            label = f"{detection['class']} ({idx})"
+            cv2.putText(overlay, label, (x1, max(y1 - 10, 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        
+        # Blend overlay with original
+        result = cv2.addWeighted(image, 0.7, overlay, 0.3, 0)
+        
+        # Save temporary visualization
+        import uuid
+        viz_filename = f"viz_{uuid.uuid4().hex[:8]}.png"
+        viz_path = os.path.join(settings.LOCAL_UPLOAD_DIR, viz_filename)
+        cv2.imwrite(viz_path, result)
+        
+        return FileResponse(
+            viz_path,
+            media_type="image/png",
+            filename=viz_filename
+        )
+    except Exception as e:
+        logger.error(f"Visualization error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/apply-style-transfer")
 async def apply_style_transfer(
     file_id: str = Query(...),
