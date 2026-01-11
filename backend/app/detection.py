@@ -35,7 +35,7 @@ class ObjectDetector:
     def detect(
         self,
         image_path: str,
-        confidence: float = 0.45,
+        confidence: float = 0.5,
         max_objects: int = 50
     ) -> List[Dict]:
         """

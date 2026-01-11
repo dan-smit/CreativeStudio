@@ -124,6 +124,7 @@ with col2:
     st.subheader("🎭 Select & Stylize")
     
     if st.session_state.detections:
+        st.markdown("Select objects below to visualize and apply styles")        
         st.markdown("**Detected Objects:**")
         
         # Display detections
@@ -283,7 +284,7 @@ with st.sidebar:
     st.markdown("### 📚 About")
     st.markdown("""
     **Creative Studio** is an AI-powered photo editor that uses:
-    - **YOLOv8** for object detection
+    - **YOLOv8m-seg** for object detection and image segmentation
     - **Neural Style Transfer** for artistic effects
     - **Google Cloud Storage** for reliable storage
     

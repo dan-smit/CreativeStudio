@@ -6,3 +6,4 @@ models/
 results/
 uploads
 *.pt
+*.ipynb

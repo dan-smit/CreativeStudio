@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 from typing import Optional
 import logging
+import cv2
+import numpy as np
 
 # Import custom modules
 from config import settings, init_gcs
@@ -184,8 +186,6 @@ async def visualize_objects(
             object_indices = [d["id"] for d in detections]
         
         # Create visualization
-        import cv2
-        import numpy as np
         
         image = cv2.imread(image_path)
         h, w = image.shape[:2]
@@ -193,10 +193,9 @@ async def visualize_objects(
         
         # Color map for different objects
         colors = [
-            (255, 0, 0), (0, 255, 0), (0, 0, 255),
-            (255, 255, 0), (255, 0, 255), (0, 255, 255),
-            (255, 128, 0), (255, 0, 128), (128, 255, 0),
-            (128, 0, 255), (0, 128, 255), (255, 128, 128)
+            "#012eff", "#00ff04", "#ff0000",
+            "#ffea00", "#ff00f6", "#00fff3",
+            "#ff7f00", "#ff007f", "#417B07",
         ]
         
         # Draw boxes and masks for selected objects
@@ -207,7 +206,7 @@ async def visualize_objects(
             detection = detections[idx]
             color = colors[idx % len(colors)]
             
-            # Draw mask if available
+            # Draw mask if available (Removed mask from API response)
             if "mask" in detection and detection["mask"] is not None:
                 mask = detection["mask"]
                 # Resize mask to match image dimensions if needed
