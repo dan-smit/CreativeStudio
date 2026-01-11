@@ -7,8 +7,8 @@ AI-powered photo editor with selective neural style transfer. Apply artistic sty
 - **🎯 Object Detection**: YOLOv8-based real-time object detection
 - **🎭 Selective Style Transfer**: Apply neural styles to specific objects only
 - **🖼️ Multiple Styles**: Mosaic, impressionist, cubist, oil painting, watercolor, sketch, cartoon
-- **☁️ Cloud Storage**: Google Cloud Storage integration for uploads and results
-- **🚀 GPU Support**: Optimized for GPU processing (Vast.ai, RunPod, Colab)
+- **☁️ Cloud Storage**: Working on Google Cloud Storage integration for uploads and results
+- **🚀 GPU Support**: Exploring GPU implementation options (Vast.ai, RunPod, Colab)
 - **📱 Interactive UI**: Clean Streamlit interface for easy image editing
 - **🔄 Real-time Processing**: Stream results as they're generated
 
@@ -170,120 +170,13 @@ LOCAL_RESULTS_DIR=./results
 LOCAL_MODELS_DIR=./models
 ```
 
-## 💻 GPU Provider Setup
-
-### 🔵 Vast.ai (Recommended)
-
-1. Create account: https://www.vast.ai/
-2. Rent GPU instance (RTX 4090 or A100 recommended)
-3. SSH into instance
-4. Set `USE_GPU=True` in environment
-5. Run backend as above
-
-**Typical cost**: $0.20-$0.50/hour for A6000 GPU
-
-### 🟠 RunPod
-
-1. Create account: https://www.runpod.io/
-2. Start GPU pod (PyTorch template)
-3. Set `USE_GPU=True`
-4. Deploy application
-
-**Typical cost**: $0.29-$0.44/hour for RTX 4090
-
-### 📓 Google Colab (Free)
-
-```python
-!pip install -r requirements.txt
-!pip install pyngrok
-
-from pyngrok import ngrok
-ngrok.connect(8000)
-
-%cd backend
-!python main.py
-```
-
-## 🗄️ Google Cloud Storage Setup
-
-### 1. Create GCS Bucket
-
-```bash
-gsutil mb gs://creative-studio-bucket
-```
-
-### 2. Create Service Account
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create service account with "Storage Admin" role
-3. Download JSON key
-4. Set environment variables:
-
-```bash
-export USE_GCS=True
-export GCS_PROJECT_ID=your-project-id
-export GCS_CREDENTIALS_PATH=/path/to/service-account-key.json
-```
-
-### 3. Test Connection
-
-```bash
-python -c "from backend.config import init_gcs; init_gcs(); print('GCS connected!')"
-```
-
 ## 📊 Performance Tuning
 
 ### Model Selection
-- **YOLOv8n**: Fastest (5ms), lower accuracy
-- **YOLOv8m**: Balanced (25ms), good accuracy
-- **YOLOv8l**: Slower (40ms), high accuracy
-- **YOLOv8x**: Slowest (80ms), best accuracy
-
-### Image Processing
-- Optimal size: 1024x1024 px
-- Max recommended: 2048x2048 px
-- Use JPEG for better compression
-
-### GPU Optimization
-- Enable mixed precision: `torch.cuda.amp`
-- Use `torch.jit` for model compilation
-- Batch process images for throughput
-
-## 🐛 Troubleshooting
-
-### CUDA Out of Memory
-```bash
-# Use smaller YOLO model
-export YOLO_MODEL=yolov8n
-
-# Clear cache
-rm -rf ~/.cache/torch
-```
-
-### Slow Processing
-- Reduce image resolution
-- Use faster YOLO model (yolov8n)
-- Increase style strength (less refinement)
-
-### GCS Connection Issues
-```bash
-# Verify credentials
-cat $GCS_CREDENTIALS_PATH
-
-# Test access
-gsutil ls gs://creative-studio-bucket
-
-# Check permissions
-gsutil iam ch serviceAccount:your-service-account@project.iam.gserviceaccount.com:roles/storage.admin gs://creative-studio-bucket
-```
-
-### Port Already in Use
-```bash
-# Find and kill process
-lsof -i :8000  # Backend
-lsof -i :8501  # Frontend
-kill -9 <PID>
-```
+- **YOLOv8n**: Fastest, lower accuracy
+- **YOLOv8m**: Balanced, good accuracy
+- **YOLOv8l**: Slower, high accuracy
+- **YOLOv8x**: Slowest, best accuracy
 
 ## 📦 Deployment
 
