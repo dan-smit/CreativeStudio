@@ -1,0 +1,8 @@
+name: Export Github Actions Timing Data
+
+on:
+  workflow_run:
+    workflows:
+      ##LIST WORKFLOWS HERE
+
+    types: [completed]
