@@ -71,6 +71,7 @@ wheelhouse/
 models/
 uploads/
 results/
+*.pt
 
 # Misc binary/blob artefacts
 *.zip

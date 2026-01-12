@@ -52,14 +52,6 @@ venv/
 .conda/
 pip-wheel-metadata/
 
-# Go
-/pkg/
-bin/            # if you compile on host
-*.exe
-*.dll
-*.so
-*.dylib
-
 # ──────────────────────────
 # 4. Build artefacts
 # ──────────────────────────
@@ -76,10 +68,10 @@ build/
 develop-eggs/
 *.whl
 wheelhouse/
-
-# Go
-*.test
-coverage.out
+models/
+uploads/
+results/
+*.pt
 
 # Misc binary/blob artefacts
 *.zip

@@ -4,7 +4,7 @@ Creative Studio Frontend - Streamlit UI
 import streamlit as st
 import requests
 import os
-from PIL import Image
+from PIL import Image, ImageDraw
 import io
 import json
 
@@ -149,7 +149,7 @@ with col2:
         
         if st.session_state.selected_objects:
             # Draw bounding boxes on a copy of the original image
-            from PIL import ImageDraw
+            # from PIL import ImageDraw
             
             viz_image = st.session_state.uploaded_image.copy()
             draw = ImageDraw.Draw(viz_image)
